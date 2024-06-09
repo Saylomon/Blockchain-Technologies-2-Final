@@ -38,15 +38,27 @@ const CONTRACT_ADDRESS = "your_contract_address_here";
 6. Open the Application
 Open your browser and navigate to http://localhost:8080.
 
+
+
+
 Project Structure:
+
 src/: Contains the Vue.js front-end code.
+
 src/components/: Contains Vue components.
+
 src/store/: Contains Vuex store configuration.
+
 src/views/: Contains the main views of the application.
+
 src/contracts/: Contains the Solidity smart contract and ABI.
 
 
+
+
+
 Smart Contract:
+
 The smart contract is written in Solidity and provides the following functions:
 
 addCandidate(string memory _name): Adds a new candidate.
