@@ -2,12 +2,27 @@
   <div id="app">
     <nav>
       <router-link to="/">Home</router-link>
-      <router-link to="/admin">Admin</router-link>
+      <router-link to="/admin" :class="{ disabled: !isAuthorized }">Admin</router-link>
       <router-link to="/results">Show Results</router-link>
     </nav>
     <router-view></router-view>
   </div>
 </template>
+
+<script>
+import { mapState } from 'vuex';
+
+export default {
+  computed: {
+    ...mapState(['wallet']),
+    isAuthorized() {
+      const authorizedAddress = '0x8ec0d8a512c58dd643967d577fea110f60f64bd8'.toLowerCase();
+      const walletAddress = this.wallet.address ? this.wallet.address.toLowerCase() : null;
+      return walletAddress && walletAddress === authorizedAddress;
+    }
+  }
+}
+</script>
 
 <style>
 #app {
@@ -59,6 +74,11 @@ nav a.router-link-exact-active {
   color: #121212;
   background: rgb(255, 255, 255);
   text-shadow: 0 0 5px rgb(255, 255, 255), 0 0 10px rgb(255, 255, 255);
+}
+
+nav a.disabled {
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 router-view {

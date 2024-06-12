@@ -23,7 +23,8 @@ export default createStore({
     currentTime: null,
     winner: null,
     results: [],
-    electionResult: null // Добавлено состояние electionResult
+    electionResult: null, // Добавлено состояние electionResult
+    owner: null
   },
   getters: {
     getCandidateById: (state) => (id) => {
@@ -63,6 +64,9 @@ export default createStore({
     },
     setElectionResult(state, result) { // Добавлено изменение electionResult
       state.electionResult = result;
+    },
+    setContractOwner(state,owner) {
+      state.owner = owner;
     }
   },
   actions: {
@@ -117,6 +121,9 @@ export default createStore({
   
             const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
             commit('setContract', contract);
+
+            const owner = await contract.owner();
+            commit('setContractOwner', owner);
           });
         } catch (error) {
           console.error("Error connecting wallet:", error);
@@ -137,6 +144,7 @@ export default createStore({
           await dispatch('fetchCandidates');
         } catch (error) {
           console.error("Error voting:", error);
+          aler("ERROR: ", error)
           throw error;
         }
     },
@@ -147,6 +155,7 @@ export default createStore({
         commit('setVotingStatus', { started: true, ended: false });
       } catch (error) {
         console.error("Error starting voting:", error);
+        alert("You are not owner!")
       }
     },
     async endVoting({ commit, state }) {
@@ -156,6 +165,7 @@ export default createStore({
         commit('setVotingStatus', { started: false, ended: true });
       } catch (error) {
         console.error("Error ending voting:", error);
+        alert("You are not owner!")
       }
     },
     async addCandidate({ commit, state }, candidateName) {
@@ -164,12 +174,13 @@ export default createStore({
         await tx.wait();
       } catch (error) {
         console.error("Error adding candidate:", error);
+        alert("You are not owner!")
       }
     },
     async getWinner({ state, commit }) {
       try {
-        await state.contract.getWinner();  // Вызов функции getWinner контракта
-        const result = await state.contract.electionResult();  // Получение результата из electionResult
+        await state.contract.getWinner();  
+        const result = await state.contract.electionResult(); 
         commit('setElectionResult', {
           candidateId: result.candidateId.toNumber(),
           candidateName: result.candidateName,
@@ -188,7 +199,15 @@ export default createStore({
         console.error("Error getting current time:", error);
       }
     },
-    async fetchElectionResult({ state, commit }) { // Добавлено действие fetchElectionResult
+    async getOwner({commit, state}){
+      try {
+        const owner = await state.contract.owner();
+        commit('setContractOwner', owner);
+      } catch (error) {
+        console.error("Error getting owner:", error);
+      }
+    },
+    async fetchElectionResult({ state, commit }) {
       try {
         const result = await state.contract.electionResult();
         commit('setElectionResult', {

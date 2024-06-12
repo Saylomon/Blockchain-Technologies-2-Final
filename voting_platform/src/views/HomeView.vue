@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <h1>Voting Platform</h1>
-    <button @click="connectWalletHandler">Connect Wallet</button>
+    <button @click="connectWalletHandler" :disabled="isButtonDisabled">Connect Wallet</button>
 
     <div v-if="wallet.address">
       <h2>Wallet Address: {{ wallet.address }}</h2>
@@ -12,7 +12,7 @@
     <div>
       <h1>Vote for Candidate</h1>
       <input v-model="candidateId" placeholder="Candidate ID" />
-      <button @click="voteHandler">Vote</button>
+      <button @click="voteHandler" :disabled="!wallet.address || isVoteButtonDisabled">Vote</button>
     </div>
 
     <div>
@@ -38,6 +38,8 @@ export default {
   data() {
     return {
       candidateId: null,
+      isButtonDisabled: false,
+      isVoteButtonDisabled: false,
     }
   },
   computed: {
@@ -46,25 +48,41 @@ export default {
   methods: {
     ...mapActions(['connectWallet', 'vote', 'fetchCandidates']),
     async connectWalletHandler() {
+      this.isButtonDisabled = true;
       try {
         await this.connectWallet()
         await this.fetchCandidates()
       } catch (error) {
         console.error("Error connecting wallet:", error)
         alert(`Error connecting wallet: ${error.message}`)
+      } finally {
+        this.isButtonDisabled = false;
       }
     },
     async voteHandler() {
+      this.isVoteButtonDisabled = true;
       try {
         await this.vote(Number(this.candidateId))
         this.candidateId = null
       } catch (error) {
         console.error("Error voting:", error)
-        alert(`Error voting: ${error.message}`)
+        alert(`Error voting: Error Candidate ID`)
+      } finally {
+        this.isVoteButtonDisabled = false;
+      }
+    },
+    checkNetworkStatus() {
+      if (!navigator.onLine) {
+        alert("You are offline. Please check your internet connection.");
       }
     }
   },
+  beforeDestroy() {
+    window.removeEventListener('offline', this.checkNetworkStatus);
+  },
   async mounted() {
+    window.addEventListener('offline', this.checkNetworkStatus);
+
     if (this.wallet.address) {
       await this.fetchCandidates()
     }
@@ -111,6 +129,11 @@ button:hover {
   transform: scale(1.20);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 input {
   padding: 20px;
   border: 1px solid #fff;
@@ -135,4 +158,3 @@ li {
   font-size: 20px;
 }
 </style>
-

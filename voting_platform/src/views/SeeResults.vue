@@ -28,8 +28,8 @@ export default {
   computed: {
     ...mapState(['wallet', 'electionResult']),
     hasElectionResult() {
-      const { candidateId, candidateName, voteCount } = this.electionResult;
-      return candidateId !== 0 || candidateName !== "" || voteCount !== 0;
+      const { candidateId, candidateName, voteCount } = this.electionResult || {};
+      return candidateId || candidateName || voteCount;
     }
   },
   methods: {
